@@ -1,20 +1,19 @@
-FROM debian:stretch
+FROM node:lts-stretch
 
 ARG PI_TOOLS_GIT_REF=master
 ARG RUST_VERSION=stable
 
 # update system
 RUN apt-get update
-RUN apt-get install -y curl git gcc xz-utils
+RUN apt-get install -y curl git gcc xz-utils pkg-config
 
 # config and set variables
 #
 # On OS X, the user needs to have uid set to 1000
 # in order to access files from the shared volumes.
 # https://medium.com/@brentkearney/docker-on-mac-os-x-9793ac024e94
-RUN groupadd --system cross && useradd --create-home --system --gid cross --uid 1000 cross;
-USER cross
-ENV HOME=/home/cross
+USER node
+ENV HOME=/home/node
 ENV URL_GIT_PI_TOOLS=https://github.com/raspberrypi/tools.git \
     TOOLCHAIN_64=$HOME/pi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin \
     TOOLCHAIN_32=$HOME/pi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin
@@ -32,8 +31,6 @@ RUN if [ $PI_TOOLS_GIT_REF = master ]; \
       && cd $HOME/pi-tools \
       && git reset --hard $PI_TOOLS_GIT_REF; \
     fi
-COPY bin/gcc-sysroot $HOME/pi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/gcc-sysroot
-COPY bin/gcc-sysroot $HOME/pi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/gcc-sysroot
 
 # configure cargo
 COPY conf/cargo-config $HOME/.cargo/config
